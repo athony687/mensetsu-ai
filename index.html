@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>面接リハーサル室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 設定 → 面接室（面接官パネル＋会話ログ＋回答欄）→ 評価シート。1カラム、最大幅 760px */
+:root {
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --surface-2: #f7f8fb;
+  --ink: #18202e;
+  --muted: #5b6577;
+  --line: #dce1e9;
+  --accent: #23407c;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3e9f5;
+  --rec: #c4352b;
+  --good: #2c7a4f;
+  --warn: #a96e14;
+  --bad: #b23a3a;
+  --f-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131b; --surface: #161d29; --surface-2: #1b2331; --ink: #e7ebf2; --muted: #98a2b4;
+    --line: #283245; --accent: #93acea; --accent-ink: #0e131b; --accent-soft: #1c2944;
+    --rec: #ee6a5e; --good: #5fbf88; --warn: #e2aa4c; --bad: #ec7b7b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131b; --surface: #161d29; --surface-2: #1b2331; --ink: #e7ebf2; --muted: #98a2b4;
+  --line: #283245; --accent: #93acea; --accent-ink: #0e131b; --accent-soft: #1c2944;
+  --rec: #ee6a5e; --good: #5fbf88; --warn: #e2aa4c; --bad: #ec7b7b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.75;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 24px 4px; flex-wrap: wrap; }
+.brand { font-family: var(--f-display); font-size: 22px; font-weight: 700; letter-spacing: .04em; margin: 0; }
+.brand small { font-family: var(--f-body); font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .08em; margin-left: 10px; }
+h2 { font-size: 13px; font-weight: 700; letter-spacing: .12em; color: var(--muted); margin: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 16px; }
+@media (max-width: 560px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+label.lb { font-size: 13px; font-weight: 700; }
+.hint { font-size: 12px; color: var(--muted); line-height: 1.6; }
+input[type=text], input[type=password], input[type=number], select, textarea {
+  font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 7px;
+  padding: 9px 11px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; min-height: 90px; line-height: 1.7; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span { display: inline-block; padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; cursor: pointer; background: var(--surface-2); user-select: none; }
+.chip input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.toggle { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+.toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 16px; font-weight: 500; }
+button:hover { border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-big { padding: 13px 22px; font-size: 16px; }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 6px 10px; }
+.btn-ghost:hover { color: var(--accent); border-color: transparent; }
+.err { color: var(--bad); font-size: 13px; white-space: pre-wrap; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* 面接室 */
+.room-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.room-bar b { color: var(--ink); }
+.progress { display: flex; gap: 5px; }
+.progress i { width: 22px; height: 5px; border-radius: 3px; background: var(--line); display: block; }
+.progress i.done { background: var(--accent); }
+.progress i.now { background: var(--accent); opacity: .45; }
+.interviewer { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: start; position: relative; }
+.avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--f-display); font-size: 22px; font-weight: 700; position: relative; }
+.avatar.speaking::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--accent); animation: pulse 1.2s ease-out infinite; }
+@keyframes pulse { from { transform: scale(.92); opacity: 1; } to { transform: scale(1.18); opacity: 0; } }
+.who { font-size: 12px; color: var(--muted); letter-spacing: .06em; }
+.question { font-family: var(--f-display); font-size: clamp(19px, 3.4vw, 24px); font-weight: 600; line-height: 1.65; margin: 4px 0 0; text-wrap: pretty; min-height: 2em; }
+.kind { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; padding: 1px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); margin-left: 8px; vertical-align: 2px; }
+.thinking { display: inline-flex; gap: 5px; padding-top: 14px; }
+.thinking i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+.thinking i:nth-child(2) { animation-delay: .15s; } .thinking i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
+.selfcam { position: absolute; right: 0; top: 0; width: 120px; aspect-ratio: 4/3; max-width: 100%; border-radius: 8px; object-fit: cover; transform: scaleX(-1); border: 1px solid var(--line); background: #000; }
+.answer-box { display: flex; flex-direction: column; gap: 10px; }
+.answer-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.timer { font-size: 22px; letter-spacing: .02em; }
+.timer.long { color: var(--warn); }
+.timer.over { color: var(--bad); }
+.meta { font-size: 12px; color: var(--muted); }
+#answer { min-height: 130px; font-size: 15px; }
+.mic { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.mic svg { width: 18px; height: 18px; }
+.mic.on { background: var(--rec); color: #fff; border-color: var(--rec); }
+.mic.on .dot { animation: blink 1s infinite; }
+.log { display: flex; flex-direction: column; gap: 12px; }
+.log details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.msg { display: grid; grid-template-columns: 64px 1fr; gap: 10px; font-size: 14px; }
+.msg .r { font-size: 12px; color: var(--muted); padding-top: 2px; }
+.msg.me .r { color: var(--accent); font-weight: 700; }
+.msg p { margin: 0; white-space: pre-wrap; min-width: 0; overflow-wrap: anywhere; }
+.msg .m { font-size: 11px; color: var(--muted); }
+
+/* 評価 */
+.score-head { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; }
+@media (max-width: 480px) { .score-head { grid-template-columns: 1fr; justify-items: start; } }
+.ring { width: 132px; height: 132px; }
+.ring text { font-family: var(--f-mono); }
+.verdict { display: inline-block; font-size: 13px; font-weight: 700; padding: 3px 12px; border-radius: 999px; border: 1px solid currentColor; }
+.v-good { color: var(--good); } .v-mid { color: var(--warn); } .v-bad { color: var(--bad); }
+.summary { font-size: 15px; margin: 8px 0 0; }
+.axes { display: flex; flex-direction: column; gap: 12px; }
+.axis { display: grid; grid-template-columns: 170px 1fr 34px; gap: 12px; align-items: center; font-size: 14px; }
+@media (max-width: 560px) { .axis { grid-template-columns: 1fr 34px; } .axis .bar { grid-column: 1 / -1; grid-row: 2; } }
+.bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.axis-c { grid-column: 1 / -1; font-size: 13px; color: var(--muted); margin-top: -6px; }
+ul.pts { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+.qfb { border-top: 1px solid var(--line); padding-top: 12px; }
+.qfb summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; gap: 8px; }
+.qfb summary::before { content: "＋"; color: var(--accent); }
+.qfb[open] summary::before { content: "－"; }
+.qfb .body { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 4px 24px; font-size: 14px; }
+.better { background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; }
+.lab { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .06em; }
+.hist { display: flex; flex-direction: column; }
+.hist button { display: grid; grid-template-columns: 1fr auto; gap: 10px; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 10px 2px; background: transparent; }
+.hist button:hover { color: var(--accent); }
+.hist .sc { font-family: var(--f-mono); font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 class="brand">面接リハーサル室<small>AI MOCK INTERVIEW</small></h1>
+    <button class="btn-ghost" id="themeBtn" type="button">表示：自動</button>
+  </header>
+
+  <!-- ========== 設定 ========== -->
+  <section id="setup" class="wrap" style="gap:20px">
+    <div class="panel">
+      <h2>API の接続</h2>
+      <div class="grid3">
+        <div class="field">
+          <label class="lb" for="provider">使うAI</label>
+          <select id="provider">
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic Claude</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lb" for="model">モデル名</label>
+          <input type="text" id="model" spellcheck="false">
+        </div>
+        <div class="field">
+          <label class="lb" for="apiKey">APIキー</label>
+          <input type="password" id="apiKey" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between">
+        <label class="toggle"><input type="checkbox" id="saveKey">このブラウザにキーを保存する</label>
+        <span class="hint" id="keyHint"></span>
+      </div>
+      <div class="row">
+        <button type="button" id="testBtn">接続テスト</button>
+        <span class="hint" id="testMsg"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>面接の設定</h2>
+      <div class="grid2">
+        <div class="field">
+          <label class="lb" for="company">企業名</label>
+          <input type="text" id="company" placeholder="例：TIS株式会社">
+        </div>
+        <div class="field">
+          <label class="lb" for="role">業界・職種</label>
+          <input type="text" id="role" value="SIer・システムエンジニア職">
+        </div>
+        <div class="field">
+          <label class="lb" for="stage">面接の段階</label>
+          <select id="stage">
+            <option>一次面接（人事）</option>
+            <option>二次面接（現場社員・課長クラス）</option>
+            <option>最終面接（役員）</option>
+            <option>インターン選考面接</option>
+            <option>グループ面接の個人パート</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lb" for="persona">面接官のタイプ</label>
+          <select id="persona">
+            <option value="穏やかで話しやすい。ただし深掘りはしっかりする">穏やか</option>
+            <option value="標準的。淡々と質問し、論理の甘さには突っ込む" selected>標準</option>
+            <option value="厳しめ。回答の矛盾や浅さを鋭く指摘し、あえてプレッシャーをかける（人格否定はしない）">厳しめ（圧迫気味）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lb" for="qnum">メインの質問数：<span id="qnumV" class="mono">5</span> 問</label>
+          <input type="range" id="qnum" min="2" max="10" value="5">
+        </div>
+        <div class="field">
+          <label class="lb" for="depth">1問あたりの深掘り：最大 <span id="depthV" class="mono">2</span> 回</label>
+          <input type="range" id="depth" min="0" max="4" value="2">
+        </div>
+      </div>
+      <div class="field">
+        <span class="lb">重点的に聞いてほしいテーマ</span>
+        <div class="chips" id="topics"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>あなたの情報</h2>
+      <p class="hint" style="margin:0">ESに書いた内容を貼ると、面接官がそこから質問し、話の食い違いも突いてきます。空欄でも始められます。</p>
+      <div class="field">
+        <label class="lb" for="es">ES・自己PR・ガクチカ</label>
+        <textarea id="es" placeholder="例：塾講師のアルバイトで、数学が苦手な中学生の定期テストの点数を上げるために…"></textarea>
+      </div>
+      <div class="field">
+        <label class="lb" for="motive">志望動機</label>
+        <textarea id="motive" placeholder="提出した志望動機をそのまま貼ってください"></textarea>
+      </div>
+      <div class="field">
+        <label class="lb" for="cinfo">企業についてのメモ（任意）</label>
+        <textarea id="cinfo" placeholder="事業内容、強み、中期経営計画、説明会で聞いた話など。面接官がこれを前提に質問します" style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>音声</h2>
+      <div class="row" style="gap:18px">
+        <label class="toggle"><input type="checkbox" id="tts" checked>質問を読み上げる</label>
+        <label class="toggle"><input type="checkbox" id="autoMic" checked>読み上げ後に自動で録音を始める</label>
+        <label class="toggle"><input type="checkbox" id="cam">自分の顔を映す</label>
+      </div>
+      <div class="field" style="max-width:320px">
+        <label class="lb" for="rate">読み上げ速度：<span id="rateV" class="mono">1.1</span></label>
+        <input type="range" id="rate" min="0.8" max="1.5" step="0.1" value="1.1">
+      </div>
+      <p class="hint" style="margin:0" id="voiceHint"></p>
+    </div>
+
+    <div class="row" style="justify-content:flex-end">
+      <span class="err" id="startErr"></span>
+      <button type="button" class="btn-primary btn-big" id="startBtn">面接を始める</button>
+    </div>
+
+    <div class="panel" id="histPanel" hidden>
+      <h2>これまでの練習</h2>
+      <div class="hist" id="histList"></div>
+    </div>
+  </section>
+
+  <!-- ========== 面接室 ========== -->
+  <section id="room" class="wrap" style="gap:16px" hidden>
+    <div class="room-bar">
+      <span><b id="roomCompany"></b>　<span id="roomStage"></span></span>
+      <span class="row" style="gap:10px"><span id="progLabel" class="mono"></span><span class="progress" id="prog"></span></span>
+    </div>
+
+    <div class="panel">
+      <div class="interviewer">
+        <div class="avatar" id="avatar">面</div>
+        <div style="min-width:0">
+          <div class="who" id="whoLine">面接官</div>
+          <div id="qArea"><div class="thinking"><i></i><i></i><i></i></div></div>
+        </div>
+        <video class="selfcam" id="selfcam" autoplay muted playsinline hidden></video>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:4px">
+        <button type="button" class="btn-ghost" id="replayBtn">もう一度聞く</button>
+        <button type="button" class="btn-ghost" id="stopTtsBtn">読み上げを止める</button>
+      </div>
+    </div>
+
+    <div class="panel answer-box">
+      <div class="answer-head">
+        <div class="row" style="gap:14px">
+          <span class="timer mono" id="timer">0:00</span>
+          <span class="meta" id="charCount">0字</span>
+        </div>
+        <button type="button" class="mic" id="micBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect class="dot" x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <span id="micLabel">話して答える</span>
+        </button>
+      </div>
+      <textarea id="answer" placeholder="マイクで話すか、ここに入力してください（Ctrl＋Enterで送信）"></textarea>
+      <div class="row" style="justify-content:space-between">
+        <span class="meta">目安は30〜90秒。結論から話すと評価が上がります</span>
+        <div class="row">
+          <button type="button" id="endBtn">ここで終えて評価する</button>
+          <button type="button" class="btn-primary" id="sendBtn">回答する</button>
+        </div>
+      </div>
+      <span class="err" id="roomErr"></span>
+    </div>
+
+    <div class="panel log">
+      <details id="logDetails">
+        <summary>ここまでのやりとり</summary>
+        <div class="log" id="log" style="padding-top:12px"></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ========== 評価 ========== -->
+  <section id="result" class="wrap" style="gap:16px" hidden>
+    <div class="panel" id="resLoading">
+      <h2>評価シートを作成中</h2>
+      <div class="thinking"><i></i><i></i><i></i></div>
+      <span class="err" id="resErr"></span>
+      <div class="row"><button type="button" id="retryEvalBtn" hidden>もう一度評価する</button></div>
+    </div>
+    <div id="resBody" class="wrap" style="gap:16px" hidden></div>
+    <div class="row" style="justify-content:flex-end" id="resActions" hidden>
+      <button type="button" id="copyBtn">結果をコピー</button>
+      <button type="button" id="backBtn">設定に戻る</button>
+      <button type="button" class="btn-primary" id="againBtn">同じ設定でもう一度</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ---------- 保存まわり ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("mensetsu:" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("mensetsu:" + k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem("mensetsu:" + k); } catch {} }
+};
+
+/* ---------- テーマ ---------- */
+const themes = ["auto", "light", "dark"], themeNames = { auto: "自動", light: "ライト", dark: "ダーク" };
+let theme = store.get("theme", "auto");
+function applyTheme() {
+  if (theme === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", theme);
+  $("themeBtn").textContent = "表示：" + themeNames[theme];
+}
+$("themeBtn").onclick = () => { theme = themes[(themes.indexOf(theme) + 1) % 3]; store.set("theme", theme); applyTheme(); };
+applyTheme();
+
+/* ---------- プロバイダー ---------- */
+const PROVIDERS = {
+  gemini: { model: "gemini-3.6-flash", hint: "キーの取得：aistudio.google.com/apikey（無料枠あり）" },
+  openai: { model: "gpt-6-luna", hint: "キーの取得：platform.openai.com/api-keys" },
+  anthropic: { model: "claude-sonnet-5-5", hint: "キーの取得：console.anthropic.com" }
+};
+
+const TOPICS = ["自己紹介", "ガクチカ", "自己PR・強み", "弱み・短所", "志望動機", "なぜIT・SIerか", "挫折・失敗経験", "チームでの役割", "入社後にやりたいこと", "キャリアビジョン", "ゼミ・研究", "他社の選考状況", "逆質問"];
+$("topics").innerHTML = TOPICS.map((t, i) => `<label class="chip"><input type="checkbox" id="tp${i}" value="${t}"><span>${t}</span></label>`).join("");
+
+/* ---------- 設定の読み書き ---------- */
+const FIELDS = ["provider", "model", "company", "role", "stage", "persona", "qnum", "depth", "es", "motive", "cinfo", "rate"];
+const CHECKS = ["tts", "autoMic", "cam", "saveKey"];
+function loadSettings() {
+  const s = store.get("settings", null);
+  if (s) {
+    FIELDS.forEach(f => { if (s[f] != null) $(f).value = s[f]; });
+    CHECKS.forEach(f => { if (s[f] != null) $(f).checked = s[f]; });
+    (s.topics || []).forEach(t => { const i = TOPICS.indexOf(t); if (i >= 0) $("tp" + i).checked = true; });
+  } else {
+    ["自己紹介", "ガクチカ", "志望動機", "なぜIT・SIerか", "逆質問"].forEach(t => $("tp" + TOPICS.indexOf(t)).checked = true);
+  }
+  if (!$("model").value) $("model").value = PROVIDERS[$("provider").value].model;
+  $("apiKey").value = store.get("key:" + $("provider").value, "");
+  refreshLabels();
+}
+function readSettings() {
+  const s = {};
+  FIELDS.forEach(f => s[f] = $(f).value);
+  CHECKS.forEach(f => s[f] = $(f).checked);
+  s.qnum = +s.qnum; s.depth = +s.depth; s.rate = +s.rate;
+  s.topics = TOPICS.filter((t, i) => $("tp" + i).checked);
+  s.apiKey = $("apiKey").value.trim();
+  s.model = s.model.trim() || PROVIDERS[s.provider].model;
+  return s;
+}
+function saveSettings() {
+  const s = readSettings(); const key = s.apiKey; delete s.apiKey;
+  store.set("settings", s);
+  if (s.saveKey && key) store.set("key:" + s.provider, key); else store.del("key:" + s.provider);
+}
+function refreshLabels() {
+  $("qnumV").textContent = $("qnum").value;
+  $("depthV").textContent = $("depth").value;
+  $("rateV").textContent = (+$("rate").value).toFixed(1);
+  $("keyHint").textContent = PROVIDERS[$("provider").value].hint;
+}
+["qnum", "depth", "rate"].forEach(id => $(id).addEventListener("input", refreshLabels));
+$("provider").addEventListener("change", () => {
+  $("model").value = PROVIDERS[$("provider").value].model;
+  $("apiKey").value = store.get("key:" + $("provider").value, "");
+  refreshLabels();
+});
+
+/* ---------- API呼び出し ---------- */
+async function callLLM(s, system, history, { json = false, maxTokens = 1500 } = {}) {
+  if (!s.apiKey) throw new Error("APIキーが入力されていません。");
+  let res, data;
+  try {
+    if (s.provider === "gemini") {
+      const body = {
+        systemInstruction: { parts: [{ text: system }] },
+        contents: history.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] })),
+        generationConfig: json ? { responseMimeType: "application/json" } : {}
+      };
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(s.model)}:generateContent`, {
+        method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": s.apiKey }, body: JSON.stringify(body)
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) throw apiError(res.status, data.error && data.error.message);
+      const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+      const text = parts.filter(p => !p.thought).map(p => p.text || "").join("");
+      if (!text) throw new Error("AIから空の返答が返ってきました。もう一度試してください。");
+      return text;
+    }
+    if (s.provider === "openai") {
+      res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + s.apiKey },
+        body: JSON.stringify({ model: s.model, messages: [{ role: "system", content: system }, ...history] })
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) throw apiError(res.status, data.error && data.error.message);
+      return data.choices[0].message.content || "";
+    }
+    if (s.provider === "anthropic") {
+      res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": s.apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model: s.model, max_tokens: maxTokens, system, messages: history })
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) throw apiError(res.status, data.error && data.error.message);
+      return (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+    }
+  } catch (e) {
+    if (e instanceof TypeError) throw new Error("APIに接続できませんでした。ネット接続を確認するか、このファイルをClaudeの画面内ではなくChromeなどのブラウザで直接開いてください。");
+    throw e;
+  }
+}
+function apiError(status, msg) {
+  const why = { 400: "リクエストが正しくありません（モデル名が違う可能性があります）", 401: "APIキーが正しくありません", 403: "このキーでは使えません（権限や地域の制限）", 404: "モデルが見つかりません。モデル名を確認してください", 429: "利用上限に達しました。少し待ってから再開してください", 500: "AI側のサーバーエラーです", 503: "AIが混み合っています。少し待ってください" }[status] || "エラーが発生しました";
+  return new Error(`${why}（${status}）${msg ? "\n" + msg : ""}`);
+}
+function parseJSON(text) {
+  let t = String(text).replace(/```(?:json)?/gi, "").trim();
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a >= 0 && b > a) t = t.slice(a, b + 1);
+  return JSON.parse(t);
+}
+
+$("testBtn").onclick = async () => {
+  const s = readSettings(); $("testMsg").textContent = "確認中…"; $("testMsg").style.color = "";
+  try {
+    await callLLM(s, "短く日本語で返事をしてください。", [{ role: "user", content: "接続テストです。「OK」とだけ返してください。" }], { maxTokens: 20 });
+    $("testMsg").textContent = "接続できました（" + s.model + "）"; $("testMsg").style.color = "var(--good)";
+    saveSettings();
+  } catch (e) { $("testMsg").textContent = e.message; $("testMsg").style.color = "var(--bad)"; }
+};
+
+/* ---------- 面接官プロンプト ---------- */
+function interviewerSystem(s) {
+  return `あなたは日本企業の新卒採用の面接官です。28卒（2028年春卒業予定）の大学生を相手に、本番さながらの模擬面接を行います。
+
+# 面接の条件
+- 企業：${s.company || "（指定なし。一般的な企業として振る舞う）"}
+- 業界・職種：${s.role || "指定なし"}
+- 面接の段階：${s.stage}
+- あなたの話し方：${s.persona}
+- メインの質問数：${s.qnum}問（自己紹介の依頼と逆質問は数に含めない）
+- 1つのメイン質問への深掘り：最大${s.depth}回
+- 重点テーマ：${s.topics.join("、") || "おまかせ"}
+
+# 応募者が提出した書類
+【ES・自己PR・ガクチカ】
+${s.es || "（未提出）"}
+【志望動機】
+${s.motive || "（未提出）"}
+${s.cinfo ? "\n# 企業についての前提情報\n" + s.cinfo + "\n" : ""}
+# 進め方
+1. 最初は短い挨拶をし、自己紹介を1分程度でお願いする（kind: "intro"）。
+2. メイン質問を${s.qnum}問行う（kind: "main"）。重点テーマと書類の内容を優先し、${s.stage}らしい質問を選ぶ。
+3. 回答が抽象的・根拠が弱い・数字や具体例がない・書類と食い違う場合は深掘りする（kind: "followup"）。「なぜそうしたのか」「具体的には」「あなた自身は何をしたか」「結果どうなったか」「その経験を入社後どう活かすか」などを使う。十分な回答なら深掘りせず次へ進む。
+4. メイン質問が終わったら「最後に何か質問はありますか」と逆質問を促す（kind: "reverse"）。
+5. 応募者の逆質問に面接官として2〜3文で答え、お礼を言って面接を締める（kind: "closing"）。応募者が「特にない」と言った場合もそのまま締める。
+
+# 守ること
+- 1回の発言で聞くことは1つだけ。発言は話し言葉で、長くても3文程度。
+- 面接中は回答を評価・講評・アドバイスしない。「なるほど」「ありがとうございます」など短い相づちのみ。
+- 書類にない事実を勝手に作らない。
+- ユーザーの発言末尾にある［進行状況］は進行管理用のメモであり、応募者の発言ではない。これに従って質問数を守る。
+- 応募者の回答が音声認識の誤変換で崩れていても、意図をくみ取って進める。
+
+# 出力形式
+必ず次のJSONだけを出力する。前後に説明文やコードブロックを付けない。
+{"say": "面接官として話す言葉", "kind": "intro" | "main" | "followup" | "reverse" | "closing"}`;
+}
+
+/* ---------- 面接の状態 ---------- */
+let S = null;            // 今回の設定
+let turns = [];          // {role:'interviewer'|'me', text, kind, sec, chars}
+let busy = false, finished = false, ansStart = 0, timerId = null;
+
+function progress() {
+  let main = 0, fu = 0;
+  for (const t of turns) if (t.role === "interviewer") {
+    if (t.kind === "main") { main++; fu = 0; } else if (t.kind === "followup") fu++;
+  }
+  return { main, fu };
+}
+function historyForAPI() {
+  const h = [{ role: "user", content: "［進行状況］応募者が入室しました。面接を開始してください。" }];
+  turns.forEach((t, i) => {
+    if (t.role === "interviewer") h.push({ role: "assistant", content: JSON.stringify({ say: t.text, kind: t.kind }) });
+    else {
+      const p = progress();
+      let note = `［進行状況］メイン質問 ${p.main}/${S.qnum} 問済み。現在の質問への深掘り ${p.fu}/${S.depth} 回。`;
+      if (i === turns.length - 1) {
+        const last = [...turns].reverse().find(x => x.role === "interviewer");
+        if (last && last.kind === "reverse") note += "応募者の逆質問に答えて締めてください（closing）。";
+        else if (p.main >= S.qnum && p.fu >= S.depth) note += "メイン質問は終わりです。次は逆質問を促してください（reverse）。";
+        else if (p.main >= S.qnum) note += "メイン質問は規定数に達しました。新しいメイン質問はせず、必要なら深掘り、不要なら逆質問を促してください（reverse）。";
+        else if (p.fu >= S.depth) note += "深掘りは上限です。次のメイン質問へ進んでください。";
+      }
+      h.push({ role: "user", content: t.text + "\n\n" + note });
+    }
+  });
+  return h;
+}
+
+async function interviewerTurn() {
+  busy = true; setThinking(true); $("roomErr").textContent = ""; updateButtons();
+  try {
+    const raw = await callLLM(S, interviewerSystem(S), historyForAPI(), { json: true, maxTokens: 800 });
+    let say, kind;
+    try { const j = parseJSON(raw); say = j.say; kind = j.kind; } catch { say = raw.trim(); kind = "main"; }
+    if (!say) throw new Error("面接官の返答を読み取れませんでした。「もう一度」を押してください。");
+    if (!["intro", "main", "followup", "reverse", "closing"].includes(kind)) kind = "main";
+    turns.push({ role: "interviewer", text: say, kind });
+    showQuestion(say, kind);
+    renderLog(); renderProgress();
+    if (kind === "closing") { finished = true; }
+    speak(say, () => {
+      if (finished) { setTimeout(goEvaluate, S.tts ? 800 : 3000); return; }
+      startTimer();
+      if (S.autoMic && recogSupported && S.tts) startMic();
+    });
+  } catch (e) {
+    $("roomErr").innerHTML = "";
+    $("roomErr").textContent = e.message;
+    const b = document.createElement("button"); b.type = "button"; b.textContent = "もう一度"; b.style.marginLeft = "10px";
+    b.onclick = () => interviewerTurn(); $("roomErr").appendChild(b);
+    if (!turns.length) $("qArea").innerHTML = "";
+  } finally { busy = false; setThinking(false); updateButtons(); }
+}
+
+const KIND_LABEL = { intro: "自己紹介", main: "質問", followup: "深掘り", reverse: "逆質問", closing: "終了" };
+function showQuestion(text, kind) {
+  $("qArea").innerHTML = "";
+  const p = document.createElement("p"); p.className = "question"; p.textContent = text;
+  const k = document.createElement("span"); k.className = "kind"; k.textContent = KIND_LABEL[kind] || "";
+  p.appendChild(k); $("qArea").appendChild(p);
+}
+function setThinking(on) {
+  if (on) $("qArea").innerHTML = '<div class="thinking" aria-label="面接官が考えています"><i></i><i></i><i></i></div>';
+}
+function renderProgress() {
+  const p = progress(), n = S.qnum;
+  $("prog").innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < p.main - 1 ? "done" : i === p.main - 1 ? "now" : ""}"></i>`).join("");
+  const last = [...turns].reverse().find(t => t.role === "interviewer");
+  $("progLabel").textContent = last && (last.kind === "reverse" || last.kind === "closing") ? "逆質問" : last && last.kind === "intro" ? "自己紹介" : `${Math.min(p.main, n)} / ${n}`;
+}
+function renderLog() {
+  $("log").innerHTML = "";
+  turns.forEach(t => {
+    const d = document.createElement("div"); d.className = "msg" + (t.role === "me" ? " me" : "");
+    const r = document.createElement("div"); r.className = "r"; r.textContent = t.role === "me" ? "あなた" : "面接官";
+    const p = document.createElement("p"); p.textContent = t.text;
+    if (t.role === "me") { const m = document.createElement("div"); m.className = "m"; m.textContent = `${t.sec}秒・${t.chars}字`; p.appendChild(document.createElement("br")); p.appendChild(m); }
+    d.append(r, p); $("log").appendChild(d);
+  });
+}
+function updateButtons() {
+  $("sendBtn").disabled = busy || finished;
+  $("micBtn").disabled = busy || finished || !recogSupported;
+  $("endBtn").disabled = busy || !turns.some(t => t.role === "me");
+}
+
+/* ---------- タイマー ---------- */
+function startTimer() {
+  stopTimer(); ansStart = Date.now();
+  timerId = setInterval(() => {
+    const sec = Math.floor((Date.now() - ansStart) / 1000);
+    $("timer").textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+    $("timer").className = "timer mono" + (sec > 120 ? " over" : sec > 90 ? " long" : "");
+  }, 250);
+}
+function stopTimer() { if (timerId) clearInterval(timerId); timerId = null; }
+$("answer").addEventListener("input", () => { $("charCount").textContent = $("answer").value.replace(/\s/g, "").length + "字"; });
+
+/* ---------- 送信 ---------- */
+function sendAnswer() {
+  if (busy || finished) return;
+  stopMic();
+  const text = $("answer").value.trim();
+  if (!text) { $("roomErr").textContent = "回答が空です。話すか入力してから送ってください。"; return; }
+  const sec = ansStart ? Math.round((Date.now() - ansStart) / 1000) : 0;
+  stopTimer(); stopSpeak();
+  turns.push({ role: "me", text, sec, chars: text.replace(/\s/g, "").length });
+  $("answer").value = ""; $("charCount").textContent = "0字"; $("timer").textContent = "0:00"; $("timer").className = "timer mono";
+  renderLog(); interviewerTurn();
+}
+$("sendBtn").onclick = sendAnswer;
+$("answer").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendAnswer(); } });
+$("endBtn").onclick = () => { stopMic(); stopSpeak(); stopTimer(); finished = true; goEvaluate(); };
+
+/* ---------- 読み上げ ---------- */
+let jaVoice = null;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices().filter(v => /ja/i.test(v.lang));
+  jaVoice = vs.find(v => /Google|Kyoko|Otoya|Nanami|Keita/i.test(v.name)) || vs[0] || null;
+}
+if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(text, done) {
+  if (!S.tts || !("speechSynthesis" in window)) { done && done(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "ja-JP"; u.rate = S.rate; if (jaVoice) u.voice = jaVoice;
+  let called = false; const fin = () => { if (called) return; called = true; $("avatar").classList.remove("speaking"); done && done(); };
+  u.onstart = () => $("avatar").classList.add("speaking");
+  u.onend = fin; u.onerror = fin;
+  speechSynthesis.speak(u);
+}
+function stopSpeak() { if ("speechSynthesis" in window) speechSynthesis.cancel(); $("avatar").classList.remove("speaking"); }
+$("replayBtn").onclick = () => { const last = [...turns].reverse().find(t => t.role === "interviewer"); if (last) { const keep = S.tts; S.tts = true; speak(last.text, () => {}); S.tts = keep; } };
+$("stopTtsBtn").onclick = stopSpeak;
+
+/* ---------- 音声入力 ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recogSupported = !!SR;
+let recog = null, listening = false, baseText = "", finalText = "";
+$("voiceHint").textContent = recogSupported
+  ? "音声入力は Chrome か Edge で使えます。初回はマイクの許可を求められます。"
+  : "このブラウザは音声入力に対応していません。Chrome か Edge で開くと話して答えられます（文字入力はそのまま使えます）。";
+function startMic() {
+  if (!recogSupported || listening || busy || finished) return;
+  recog = new SR(); recog.lang = "ja-JP"; recog.continuous = true; recog.interimResults = true;
+  baseText = $("answer").value; if (baseText && !/\s$/.test(baseText)) baseText += " ";
+  finalText = "";
+  recog.onresult = e => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) finalText += r[0].transcript + "。"; else interim += r[0].transcript;
+    }
+    $("answer").value = baseText + finalText + interim;
+    $("charCount").textContent = $("answer").value.replace(/\s/g, "").length + "字";
+    if (!timerId && !finished) startTimer();
+  };
+  recog.onerror = e => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") { $("roomErr").textContent = "マイクが許可されていません。アドレスバーのマイクの設定を「許可」にしてください。"; listening = false; setMicUI(); }
+  };
+  recog.onend = () => {
+    if (listening) { baseText = $("answer").value; finalText = ""; try { recog.start(); } catch { listening = false; setMicUI(); } }
+  };
+  try { recog.start(); listening = true; } catch { listening = false; }
+  setMicUI();
+}
+function stopMic() { if (!recog) return; listening = false; try { recog.stop(); } catch {} setMicUI(); }
+function setMicUI() { $("micBtn").classList.toggle("on", listening); $("micLabel").textContent = listening ? "録音中（押すと停止）" : "話して答える"; }
+$("micBtn").onclick = () => { if (listening) stopMic(); else { stopSpeak(); if (!timerId) startTimer(); startMic(); } };
+
+/* ---------- カメラ ---------- */
+let camStream = null;
+async function startCam() {
+  try { camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); $("selfcam").srcObject = camStream; $("selfcam").hidden = false; }
+  catch { $("selfcam").hidden = true; }
+}
+function stopCam() { if (camStream) camStream.getTracks().forEach(t => t.stop()); camStream = null; $("selfcam").hidden = true; }
+
+/* ---------- 開始 ---------- */
+function show(id) { ["setup", "room", "result"].forEach(x => $(x).hidden = x !== id); window.scrollTo(0, 0); }
+function begin(s) {
+  S = s; turns = []; finished = false; busy = false; lastResult = null;
+  $("roomCompany").textContent = s.company || "（企業名なし）";
+  $("roomStage").textContent = s.stage;
+  $("whoLine").textContent = "面接官｜" + s.stage.replace(/（.*?）/, "");
+  $("answer").value = ""; $("log").innerHTML = ""; $("timer").textContent = "0:00"; $("charCount").textContent = "0字";
+  show("room"); renderProgress(); updateButtons();
+  if (s.cam) startCam();
+  if (s.tts && "speechSynthesis" in window) { const u = new SpeechSynthesisUtterance(""); speechSynthesis.speak(u); } // 再生の許可を取る
+  interviewerTurn();
+}
+$("startBtn").onclick = () => {
+  const s = readSettings();
+  if (!s.apiKey) { $("startErr").textContent = "APIキーを入力してください。"; $("apiKey").focus(); return; }
+  $("startErr").textContent = ""; saveSettings(); begin(s);
+};
+
+/* ---------- 評価 ---------- */
+let lastResult = null;
+function transcriptText() {
+  return turns.map(t => t.role === "me" ? `応募者：${t.text}（回答時間 ${t.sec}秒・${t.chars}字）` : `面接官［${KIND_LABEL[t.kind] || ""}］：${t.text}`).join("\n");
+}
+function evalSystem(s) {
+  return `あなたは新卒採用の経験が豊富な面接評価者です。以下の模擬面接の記録を読み、応募者が次の本番で通過率を上げられるよう、具体的で率直な評価をしてください。甘く採点せず、実際の${s.stage}の基準で判断します。
+
+# 条件
+- 企業：${s.company || "指定なし"}／業界・職種：${s.role}／段階：${s.stage}
+- 応募者のES：${s.es || "（未提出）"}
+- 志望動機：${s.motive || "（未提出）"}
+${s.cinfo ? "- 企業メモ：" + s.cinfo : ""}
+
+# 評価の観点
+回答時間は30〜90秒（文字にして200〜400字程度）が目安。長すぎ・短すぎは「簡潔さ」で減点する。音声認識の誤変換は減点しない。
+6つの観点を1〜5で採点する：結論ファースト・論理性／具体性（エピソード・数字）／志望度・企業理解／一貫性（ESと発言）／簡潔さ・話し方／主体性・人柄
+
+# 出力形式（このJSONだけを出力。説明文やコードブロックは付けない）
+{
+ "total": 0〜100の整数,
+ "verdict": "通過の可能性が高い" | "ボーダー" | "このままだと厳しい",
+ "summary": "全体の講評を2〜3文",
+ "axes": [{"name": "観点名", "score": 1〜5, "comment": "1文"}],
+ "good": ["よかった点", ...（2〜4個）],
+ "improve": ["改善点。何をどう変えるかまで書く", ...（2〜4個）],
+ "questions": [{"question": "面接官の質問（深掘りはまとめてよい）", "feedback": "その回答への指摘を1〜2文", "better": "応募者の経験を使って書き直した回答例（150〜250字、話し言葉、です・ます調）"}],
+ "next": ["次に練習すべき質問", ...（2〜3個）]
+}
+回答例では、応募者が話していない経験や数字を作らない。足りない情報は「（ここに具体的な数字）」のように空欄で示す。文のねじれや助詞の誤りがない、自然な日本語で書く。`;
+}
+async function goEvaluate() {
+  stopMic(); stopTimer(); stopCam();
+  show("result");
+  $("resLoading").hidden = false; $("resBody").hidden = true; $("resActions").hidden = true; $("resErr").textContent = ""; $("retryEvalBtn").hidden = true;
+  if (!turns.some(t => t.role === "me")) { $("resErr").textContent = "回答が1つもないため評価できません。"; $("resActions").hidden = false; return; }
+  try {
+    const raw = await callLLM(S, evalSystem(S), [{ role: "user", content: "# 面接の記録\n" + transcriptText() }], { json: true, maxTokens: 6000 });
+    const r = parseJSON(raw);
+    lastResult = r; renderResult(r); saveHistory(r);
+  } catch (e) {
+    $("resErr").textContent = e.message; $("retryEvalBtn").hidden = false; $("resActions").hidden = false;
+  }
+}
+$("retryEvalBtn").onclick = goEvaluate;
+
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function verdictClass(v) { return /高い/.test(v) ? "v-good" : /厳しい/.test(v) ? "v-bad" : "v-mid"; }
+function renderResult(r, savedTurns) {
+  const total = Math.max(0, Math.min(100, Math.round(+r.total || 0)));
+  const C = 2 * Math.PI * 54, off = C * (1 - total / 100);
+  const tr = savedTurns || turns;
+  const answers = tr.filter(t => t.role === "me");
+  const avgSec = answers.length ? Math.round(answers.reduce((a, t) => a + t.sec, 0) / answers.length) : 0;
+  const html = `
+  <div class="panel">
+    <h2>評価シート</h2>
+    <div class="score-head">
+      <svg class="ring" viewBox="0 0 132 132" role="img" aria-label="総合 ${total}点">
+        <circle cx="66" cy="66" r="54" fill="none" stroke="var(--line)" stroke-width="10"/>
+        <circle cx="66" cy="66" r="54" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 66 66)"/>
+        <text x="66" y="72" text-anchor="middle" font-size="34" fill="var(--ink)">${total}</text>
+        <text x="66" y="92" text-anchor="middle" font-size="11" fill="var(--muted)">/ 100</text>
+      </svg>
+      <div style="min-width:0">
+        <span class="verdict ${verdictClass(r.verdict)}">${esc(r.verdict)}</span>
+        <p class="summary">${esc(r.summary)}</p>
+        <p class="meta" style="margin:4px 0 0">回答 ${answers.length}回・平均 ${avgSec}秒</p>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>観点別</h2>
+    <div class="axes">${(r.axes || []).map(a => {
+      const sc = Math.max(0, Math.min(5, +a.score || 0));
+      return `<div class="axis"><span>${esc(a.name)}</span><span class="bar"><i style="width:${sc * 20}%"></i></span><span class="mono" style="text-align:right">${sc}/5</span><span class="axis-c">${esc(a.comment)}</span></div>`;
+    }).join("")}</div>
+  </div>
+  <div class="grid2" style="gap:16px">
+    <div class="panel"><h2>よかった点</h2><ul class="pts">${(r.good || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="panel"><h2>直すと良くなる点</h2><ul class="pts">${(r.improve || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+  </div>
+  <div class="panel">
+    <h2>質問ごとのフィードバック</h2>
+    ${(r.questions || []).map((q, i) => `
+      <details class="qfb"${i === 0 ? " open" : ""}>
+        <summary>${esc(q.question)}</summary>
+        <div class="body">
+          <div><div class="lab">指摘</div>${esc(q.feedback)}</div>
+          <div class="better"><div class="lab">回答例</div>${esc(q.better)}</div>
+        </div>
+      </details>`).join("")}
+  </div>
+  ${(r.next || []).length ? `<div class="panel"><h2>次に練習したい質問</h2><ul class="pts">${r.next.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+  <div class="panel log"><details><summary>面接の全文</summary><div class="log" style="padding-top:12px">${tr.map(t => `<div class="msg${t.role === "me" ? " me" : ""}"><div class="r">${t.role === "me" ? "あなた" : "面接官"}</div><p>${esc(t.text)}${t.role === "me" ? `<br><span class="m">${t.sec}秒・${t.chars}字</span>` : ""}</p></div>`).join("")}</div></details></div>`;
+  $("resBody").innerHTML = html;
+  $("resLoading").hidden = true; $("resBody").hidden = false; $("resActions").hidden = false;
+}
+
+function resultAsText(r, tr) {
+  const L = [];
+  L.push(`【模擬面接の評価】${S ? (S.company || "") + " " + S.stage : ""}`);
+  L.push(`総合 ${r.total}点（${r.verdict}）`, r.summary, "");
+  (r.axes || []).forEach(a => L.push(`・${a.name}：${a.score}/5　${a.comment}`));
+  L.push("", "よかった点"); (r.good || []).forEach(x => L.push("・" + x));
+  L.push("", "直すと良くなる点"); (r.improve || []).forEach(x => L.push("・" + x));
+  L.push("", "質問ごと");
+  (r.questions || []).forEach(q => L.push(`Q. ${q.question}`, `指摘：${q.feedback}`, `回答例：${q.better}`, ""));
+  L.push("面接の全文"); (tr || []).forEach(t => L.push((t.role === "me" ? "あなた：" : "面接官：") + t.text));
+  return L.join("\n");
+}
+$("copyBtn").onclick = async () => {
+  if (!lastResult) return;
+  const text = resultAsText(lastResult, viewingTurns || turns);
+  try { await navigator.clipboard.writeText(text); $("copyBtn").textContent = "コピーしました"; }
+  catch { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); $("copyBtn").textContent = "コピーしました"; } catch {} ta.remove(); }
+  setTimeout(() => $("copyBtn").textContent = "結果をコピー", 1800);
+};
+$("backBtn").onclick = () => { viewingTurns = null; show("setup"); renderHistory(); };
+$("againBtn").onclick = () => { viewingTurns = null; const s = readSettings(); if (!s.apiKey) { show("setup"); $("startErr").textContent = "APIキーを入力してください。"; return; } begin(s); };
+
+/* ---------- 履歴 ---------- */
+let viewingTurns = null;
+function saveHistory(r) {
+  const h = store.get("history", []);
+  h.unshift({ at: new Date().toISOString(), company: S.company, stage: S.stage, total: r.total, verdict: r.verdict, result: r, turns });
+  store.set("history", h.slice(0, 30));
+}
+function renderHistory() {
+  const h = store.get("history", []);
+  $("histPanel").hidden = !h.length;
+  $("histList").innerHTML = "";
+  h.forEach(x => {
+    const b = document.createElement("button"); b.type = "button";
+    const d = new Date(x.at);
+    b.innerHTML = `<span>${d.getMonth() + 1}/${d.getDate()}　${esc(x.company || "企業名なし")}　<span class="meta">${esc(x.stage)}</span></span><span class="sc">${esc(x.total)}点</span>`;
+    b.onclick = () => { lastResult = x.result; viewingTurns = x.turns; show("result"); renderResult(x.result, x.turns); };
+    $("histList").appendChild(b);
+  });
+}
+
+loadSettings(); renderHistory();
+})();
+</script>
+</body>
+</html>
