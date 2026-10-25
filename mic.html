@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>面接マイク</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 1画面。録音ボタン → 話した文字 → コピーの案内。面接リハーサル室と同じ配色 */
+:root {
+  --bg: #f2f4f7; --surface: #ffffff; --surface-2: #f7f8fb; --ink: #18202e; --muted: #5b6577; --line: #dce1e9;
+  --accent: #23407c; --accent-ink: #ffffff; --accent-soft: #e3e9f5; --rec: #c4352b; --good: #2c7a4f; --bad: #b23a3a;
+  --f-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0e131b; --surface: #161d29; --surface-2: #1b2331; --ink: #e7ebf2; --muted: #98a2b4; --line: #283245;
+    --accent: #93acea; --accent-ink: #0e131b; --accent-soft: #1c2944; --rec: #ee6a5e; --good: #5fbf88; --bad: #ec7b7b; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.75;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--f-display); font-size: 20px; margin: 0; letter-spacing: .04em; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.top { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+#recBtn { width: 96px; height: 96px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); cursor: pointer;
+  display: grid; place-items: center; flex: none; position: relative; }
+#recBtn svg { width: 38px; height: 38px; }
+#recBtn.on { background: var(--rec); color: #fff; }
+#recBtn.on::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid var(--rec); animation: pulse 1.2s ease-out infinite; }
+@keyframes pulse { from { transform: scale(.94); opacity: 1; } to { transform: scale(1.15); opacity: 0; } }
+#recBtn:focus-visible, button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.state { font-size: 18px; font-weight: 700; }
+.meta { font-size: 13px; color: var(--muted); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+textarea { font: inherit; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; width: 100%; min-height: 220px; resize: vertical; line-height: 1.8; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button.b { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 9px 16px; font-weight: 500; }
+button.b:hover { border-color: var(--accent); }
+.msg { border-radius: 8px; padding: 10px 12px; font-size: 14px; background: var(--accent-soft); }
+.msg.ok { color: var(--good); font-weight: 700; }
+.msg.ng { color: var(--bad); }
+kbd { font-family: var(--f-mono); font-size: 13px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; background: var(--surface); }
+ol { margin: 0; padding-left: 1.3em; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>面接マイク</h1>
+  <div class="panel">
+    <div class="top">
+      <button type="button" id="recBtn" aria-label="録音を始める">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
+      <div>
+        <div class="state" id="state">押して話す</div>
+        <div class="meta"><span class="mono" id="timer">0:00</span>・<span id="chars">0字</span>　<kbd>Space</kbd> でも開始・停止</div>
+      </div>
+    </div>
+    <div class="msg" id="msg">話し終わってボタンを押すと、文字がコピーされます。面接のタブに戻って <kbd>Ctrl</kbd>＋<kbd>V</kbd> で貼り付けてください。</div>
+    <label for="text" class="meta">話した内容（直してからコピーもできます）</label>
+    <textarea id="text" spellcheck="false"></textarea>
+    <div class="row">
+      <button type="button" class="b" id="copyBtn">もう一度コピー</button>
+      <button type="button" class="b" id="clearBtn">消す</button>
+    </div>
+  </div>
+  <div class="panel">
+    <ol class="meta">
+      <li>面接のタブで質問が出たら、このタブに来て丸いボタンを押して話す</li>
+      <li>話し終わったらもう一度押す（自動でコピーされる）</li>
+      <li>面接のタブに戻って <kbd>Ctrl</kbd>＋<kbd>V</kbd>、「回答する」</li>
+    </ol>
+    <p class="meta" style="margin:0">2つのタブを左右に並べておくと楽です。音声認識は Chrome か Edge で使えます。初めて押したとき、マイクの許可を求められます。</p>
+  </div>
+</div>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null, listening = false, finalText = "", t0 = 0, tick = null;
+
+function setMsg(html, cls) { $("msg").innerHTML = html; $("msg").className = "msg" + (cls ? " " + cls : ""); }
+function count() { $("chars").textContent = $("text").value.replace(/\s/g, "").length + "字"; }
+function ui() {
+  $("recBtn").classList.toggle("on", listening);
+  $("recBtn").setAttribute("aria-label", listening ? "録音を止める" : "録音を始める");
+  $("state").textContent = listening ? "録音中（押すと止めてコピー）" : "押して話す";
+}
+async function copy() {
+  const t = $("text").value.trim();
+  if (!t) { setMsg("まだ文字がありません。丸いボタンを押して話してください。", "ng"); return; }
+  try {
+    await navigator.clipboard.writeText(t);
+    setMsg(`コピーしました（${t.replace(/\s/g, "").length}字）。面接のタブに戻って <kbd>Ctrl</kbd>＋<kbd>V</kbd> で貼り付けてください。`, "ok");
+  } catch {
+    $("text").focus(); $("text").select();
+    setMsg("自動でコピーできませんでした。文字を選んだので <kbd>Ctrl</kbd>＋<kbd>C</kbd> でコピーしてください。", "ng");
+  }
+}
+
+function start() {
+  if (!SR) { setMsg("このブラウザは音声認識に対応していません。Chrome か Edge で開いてください。", "ng"); return; }
+  finalText = ""; $("text").value = ""; count();
+  recog = new SR(); recog.lang = "ja-JP"; recog.continuous = true; recog.interimResults = true;
+  recog.onresult = e => {
+    let interim = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (r.isFinal) finalText += r[0].transcript + "。"; else interim += r[0].transcript;
+    }
+    $("text").value = finalText + interim; count();
+  };
+  recog.onerror = e => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      listening = false; ui(); stopTimer();
+      setMsg("マイクが許可されていません。アドレスバー左のボタンからマイクを「許可」にして、もう一度押してください。", "ng");
+    } else if (e.error === "audio-capture") {
+      listening = false; ui(); stopTimer();
+      setMsg("マイクが見つかりません。マイクがつながっているか確認してください。", "ng");
+    }
+  };
+  recog.onend = () => {
+    if (listening) { try { recog.start(); } catch { listening = false; ui(); stopTimer(); } } // 無音で止まったら続ける
+    else if ($("text").value.trim()) copy(); // 止めた後に確定した文字も含めてコピーし直す
+  };
+  try { recog.start(); listening = true; } catch { listening = false; }
+  ui();
+  if (listening) { startTimer(); setMsg("話してください。終わったら丸いボタンをもう一度押します。"); }
+}
+function stop() {
+  listening = false; ui(); stopTimer();
+  try { recog && recog.stop(); } catch {}
+  copy();
+}
+function startTimer() {
+  t0 = Date.now(); clearInterval(tick);
+  tick = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 250);
+}
+function stopTimer() { clearInterval(tick); tick = null; }
+
+$("recBtn").onclick = () => listening ? stop() : start();
+$("copyBtn").onclick = copy;
+$("clearBtn").onclick = () => { $("text").value = ""; finalText = ""; count(); $("timer").textContent = "0:00"; };
+$("text").addEventListener("input", count);
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" && document.activeElement !== $("text")) { e.preventDefault(); listening ? stop() : start(); }
+});
+if (!SR) setMsg("このブラウザは音声認識に対応していません。Chrome か Edge で開いてください。", "ng");
+})();
+</script>
+</body>
+</html>
